@@ -1,0 +1,20 @@
+{
+  "name": "apps",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run index.ts",
+    "build": "bun build ./index.ts --compile --minify --sourcemap=linked --outfile ./dist/server",
+    "start": "./dist/index.ts",
+    "lint": "biome check",
+    "format": "biome format --write",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

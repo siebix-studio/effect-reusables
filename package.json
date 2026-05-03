@@ -5,12 +5,14 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
+    "format": "biome format --write",
+    "check-types": "turbo run check-types",
+    "precommit": "lefthook run pre-commit"
   },
   "devDependencies": {
-    "prettier": "^3.7.4",
-    "turbo": "^2.9.8",
+    "@biomejs/biome": "2.4.14",
+    "@effect/language-service": "^0.85.1",
+    "lefthook": "^2.1.6",
     "typescript": "5.9.2"
   },
   "engines": {

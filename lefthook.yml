@@ -1,0 +1,13 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - name: lint
+      run: bun run lint
+    - name: format
+      run: bun run format
+    - name: check-types
+      run: bun run check-types
+    - name: test
+      run: bun run test
+    - name: build
+      run: bun run build
