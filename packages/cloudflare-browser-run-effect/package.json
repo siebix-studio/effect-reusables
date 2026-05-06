@@ -33,7 +33,6 @@
   "module": "./dist/index.js",
   "files": [
     "dist",
-    "src",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"

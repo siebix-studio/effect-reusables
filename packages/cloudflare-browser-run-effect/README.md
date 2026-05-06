@@ -4,6 +4,12 @@ Effect service and schemas for Cloudflare Browser Run Quick Actions.
 
 Created by [Siebix](https://siebix.com).
 
+## Beta Status
+
+This package targets Effect v4 beta and imports Effect unstable modules for AI
+structured output and HTTP. Treat the public API as beta until Effect v4 and
+Cloudflare Browser Run stabilize.
+
 ## Install
 
 ```sh
