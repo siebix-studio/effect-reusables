@@ -1,0 +1,78 @@
+import { Result, Schema } from "effect";
+import { describe, expect, it } from "vitest";
+import {
+  BrowserRunApiError,
+  BrowserRunCrawlJobId,
+  BrowserRunCrawlJobResult,
+  BrowserRunCrawlRequest,
+  BrowserRunSchemaError,
+} from "../src/index.ts";
+
+describe("Browser Run schemas", () => {
+  it("brands non-empty crawl job ids", () => {
+    const result =
+      Schema.decodeUnknownResult(BrowserRunCrawlJobId)("crawl-job-1");
+
+    expect(Result.isSuccess(result)).toBe(true);
+  });
+
+  it("rejects empty crawl job ids", () => {
+    const result = Schema.decodeUnknownResult(BrowserRunCrawlJobId)("");
+
+    expect(Result.isFailure(result)).toBe(true);
+  });
+
+  it("rejects invalid crawl depth before sending a request", () => {
+    const result = Schema.decodeUnknownResult(BrowserRunCrawlRequest)({
+      url: new URL("https://www.siebix.com/"),
+      depth: 0,
+      limit: 1,
+    });
+
+    expect(Result.isFailure(result)).toBe(true);
+  });
+
+  it("accepts crawl records before metadata is populated", () => {
+    const result = Schema.decodeUnknownResult(BrowserRunCrawlJobResult)({
+      id: "crawl-job-1",
+      browserSecondsUsed: 0,
+      finished: 0,
+      records: [
+        {
+          status: "queued",
+          url: "https://www.siebix.com/",
+        },
+      ],
+      skipped: 0,
+      status: "running",
+      total: 1,
+    });
+
+    expect(Result.isSuccess(result)).toBe(true);
+  });
+});
+
+describe("Browser Run errors", () => {
+  it("formats Cloudflare API errors", () => {
+    const error = BrowserRunApiError.make({
+      endpoint: "crawl",
+      errors: [
+        {
+          code: "too_small",
+          message: "Number must be greater than or equal to 1",
+        },
+      ],
+    });
+
+    expect(error.message).toBe(
+      "crawl: [too_small] Number must be greater than or equal to 1",
+    );
+  });
+
+  it("formats non-primitive schema error causes defensively", () => {
+    const cause = Object.create(null);
+    const error = BrowserRunSchemaError.make({ cause });
+
+    expect(error.message).toBe("{}");
+  });
+});

@@ -1,0 +1,60 @@
+{
+  "name": "@siebix/cloudflare-browser-run-effect",
+  "version": "0.0.0",
+  "description": "Effect service and schemas for Cloudflare Browser Run Quick Actions.",
+  "keywords": [
+    "cloudflare",
+    "browser-run",
+    "browser-rendering",
+    "effect",
+    "effect-ts"
+  ],
+  "license": "MIT",
+  "author": "Siebix (https://siebix.com)",
+  "homepage": "https://siebix.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/siebix-studio/effect-reusables.git",
+    "directory": "packages/cloudflare-browser-run-effect"
+  },
+  "bugs": {
+    "url": "https://github.com/siebix-studio/effect-reusables/issues"
+  },
+  "type": "module",
+  "private": false,
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.js",
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir dist --target node --format esm --external effect && tsc -p tsconfig.build.json",
+    "check-types": "tsc --noEmit",
+    "lint": "biome check .",
+    "prepack": "bun run build",
+    "test": "vitest run",
+    "test:live": "BROWSER_RUN_LIVE=1 vitest run tests/browser-run-live.test.ts",
+    "test:watch": "vitest"
+  },
+  "peerDependencies": {
+    "effect": "^4.0.0-beta.60"
+  },
+  "devDependencies": {
+    "vitest": "3.2.4",
+    "typescript": "5.9.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

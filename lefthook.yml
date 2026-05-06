@@ -7,7 +7,7 @@ pre-commit:
       run: bun run format
     - name: check-types
       run: bun run check-types
-    # - name: test
-    #   run: bun run test
+    - name: test
+      run: bun run test
     - name: build
       run: bun run build
