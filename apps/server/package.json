@@ -1,0 +1,25 @@
+{
+  "name": "server",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "build": "bun build ./src/index.ts --compile --minify --sourcemap=linked --outfile ./dist/server",
+    "start": "./dist/src/index.ts",
+    "lint": "biome check",
+    "format": "biome format --write",
+    "check-types": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "effect": "catalog:",
+    "@effect/platform-bun": "catalog:"
+  }
+}
