@@ -1,4 +1,5 @@
-import { Effect, Exit, Schema } from "effect";
+import { Effect, Exit, Layer, Schema } from "effect";
+import { FetchHttpClient } from "effect/unstable/http";
 import { describe, expect, it } from "vitest";
 import { BrowserRunHttpService } from "../src/index.ts";
 
@@ -31,6 +32,10 @@ describe("BrowserRunHttpService live quick actions", () => {
           "Set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_BROWSER_RUN_API_KEY to run the live Browser Run test.",
         );
       }
+
+      const LiveLayer = BrowserRunHttpService.layerConfig().pipe(
+        Layer.provide(FetchHttpClient.layer),
+      );
 
       await Effect.runPromise(
         Effect.gen(function* () {
@@ -171,7 +176,7 @@ describe("BrowserRunHttpService live quick actions", () => {
             client.cancelCrawl(structuredCrawlJobId),
           );
           expect(Exit.isSuccess(structuredCancelExit)).toBe(true);
-        }).pipe(Effect.provide(BrowserRunHttpService.layer)),
+        }).pipe(Effect.provide(LiveLayer)),
       );
     },
     180_000,

@@ -56,13 +56,74 @@ The default layer reads these environment variables through Effect Config:
 - `CLOUDFLARE_ACCOUNT_ID`
 - `CLOUDFLARE_BROWSER_RUN_API_KEY`
 
-Use `BrowserRunHttpService.layer` for the default Fetch-backed implementation. Use
-`BrowserRunHttpService.layerNoDeps` if you want to provide your own
-`BrowserRunConfig` and `HttpClient.HttpClient`.
+`BrowserRunHttpService.layer(...)` and `BrowserRunHttpService.layerConfig(...)`
+create the Browser Run service, but they do not choose an HTTP transport for
+you. Provide `FetchHttpClient.layer`, a platform-specific client, or a test
+client at your application edge.
+
+### Custom Configuration
+
+Use `BrowserRunHttpService.layer(...)` for direct values and
+`BrowserRunHttpService.layerConfig(...)` for Effect Config values.
+
+For direct values, such as tests, examples, or applications that load secrets
+elsewhere:
+
+```ts
+import { Layer, Redacted } from "effect";
+import { FetchHttpClient } from "effect/unstable/http";
+import { BrowserRunHttpService } from "@siebix/cloudflare-browser-run-effect";
+
+export const BrowserRunLive = BrowserRunHttpService.layer({
+  accountId: "your-account-id",
+  apiKey: Redacted.make("your-api-key"),
+}).pipe(
+  Layer.provide(FetchHttpClient.layer),
+});
+```
+
+For custom environment variable names, keep config loading inside a layer:
+
+```ts
+import { Config, Layer } from "effect";
+import { FetchHttpClient } from "effect/unstable/http";
+import { BrowserRunHttpService } from "@siebix/cloudflare-browser-run-effect";
+
+export const BrowserRunLive = BrowserRunHttpService.layerConfig({
+  accountId: Config.string("MY_CF_ACCOUNT_ID"),
+  apiKey: Config.redacted("MY_BROWSER_RUN_TOKEN"),
+}).pipe(
+  Layer.provide(FetchHttpClient.layer),
+});
+```
+
+For the default environment variable names:
+
+```ts
+import { Layer } from "effect";
+import { FetchHttpClient } from "effect/unstable/http";
+import { BrowserRunHttpService } from "@siebix/cloudflare-browser-run-effect";
+
+export const BrowserRunLive = BrowserRunHttpService.layerConfig().pipe(
+  Layer.provide(FetchHttpClient.layer),
+);
+```
+
+Then provide the composed layer at the edge of your program:
+
+```ts
+const result = await Effect.runPromise(
+  program.pipe(Effect.provide(BrowserRunLive)),
+);
+```
+
+Both helpers also accept `baseUrl` if you need to target a proxy, test server,
+or different Cloudflare-compatible endpoint.
 
 ## Usage
 
-Provide `BrowserRunHttpService.layer` at the edge of your program. Requests that
+Provide a Browser Run layer at the edge of your program. The examples below
+assume the `BrowserRunLive` layer from the configuration section. Requests that
 use `url` expect a `URL` object, so pass `new URL("https://example.com")`
 instead of a raw string.
 
@@ -81,7 +142,7 @@ const program = Effect.gen(function* () {
 });
 
 const markdown = await Effect.runPromise(
-  program.pipe(Effect.provide(BrowserRunHttpService.layer)),
+  program.pipe(Effect.provide(BrowserRunLive)),
 );
 ```
 
@@ -98,7 +159,7 @@ const html = await Effect.runPromise(
     return yield* client.getContent({
       html: "<main><h1>Hello Browser Run</h1></main>",
     });
-  }).pipe(Effect.provide(BrowserRunHttpService.layer)),
+  }).pipe(Effect.provide(BrowserRunLive)),
 );
 ```
 
@@ -155,7 +216,7 @@ const pdfBytes = await Effect.runPromise(
         printBackground: true,
       },
     });
-  }).pipe(Effect.provide(BrowserRunHttpService.layer)),
+  }).pipe(Effect.provide(BrowserRunLive)),
 );
 ```
 
@@ -181,7 +242,7 @@ const summary = await Effect.runPromise(
       url: new URL("https://example.com"),
       prompt: "Extract the page title and a short summary.",
     });
-  }).pipe(Effect.provide(BrowserRunHttpService.layer)),
+  }).pipe(Effect.provide(BrowserRunLive)),
 );
 ```
 
@@ -207,7 +268,7 @@ const crawlResult = await Effect.runPromise(
       limit: 25,
       status: "completed",
     });
-  }).pipe(Effect.provide(BrowserRunHttpService.layer)),
+  }).pipe(Effect.provide(BrowserRunLive)),
 );
 ```
 

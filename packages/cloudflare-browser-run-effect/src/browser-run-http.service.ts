@@ -9,7 +9,6 @@ import {
 } from "effect";
 import { OpenAiStructuredOutput } from "effect/unstable/ai";
 import {
-  FetchHttpClient,
   HttpClient,
   HttpClientRequest,
   type HttpClientResponse,
@@ -862,7 +861,19 @@ export interface BrowserRunHttpServiceApi {
   ) => Effect.Effect<BrowserRunCancelCrawlResult, BrowserRunCrawlError>;
 }
 
-export class BrowserRunConfig extends Context.Service<
+export interface BrowserRunHttpServiceOptions {
+  readonly accountId: string;
+  readonly apiKey: Redacted.Redacted;
+  readonly baseUrl?: string;
+}
+
+export interface BrowserRunHttpServiceLayerConfigOptions {
+  readonly accountId?: Config.Config<string>;
+  readonly apiKey?: Config.Config<Redacted.Redacted>;
+  readonly baseUrl?: Config.Config<string>;
+}
+
+class BrowserRunConfig extends Context.Service<
   BrowserRunConfig,
   {
     readonly accountId: string;
@@ -871,16 +882,39 @@ export class BrowserRunConfig extends Context.Service<
   }
 >()("@siebix/cloudflare-browser-run-effect/BrowserRunConfig") {
   /** Reads `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_BROWSER_RUN_API_KEY` from Effect Config. */
-  static readonly layer = Layer.effect(
-    BrowserRunConfig,
-    Effect.gen(function* () {
-      const accountId = yield* Config.string("CLOUDFLARE_ACCOUNT_ID");
-      const apiKey = yield* Config.redacted("CLOUDFLARE_BROWSER_RUN_API_KEY");
-      const baseUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/browser-rendering`;
+  static readonly layerConfig = (
+    options?: BrowserRunHttpServiceLayerConfigOptions,
+  ) =>
+    Layer.effect(
+      BrowserRunConfig,
+      Effect.gen(function* () {
+        const accountIdConfig =
+          options?.accountId ?? Config.string("CLOUDFLARE_ACCOUNT_ID");
+        const apiKeyConfig =
+          options?.apiKey ?? Config.redacted("CLOUDFLARE_BROWSER_RUN_API_KEY");
+        const accountId = yield* accountIdConfig;
+        const apiKey = yield* apiKeyConfig;
+        const baseUrl =
+          options?.baseUrl === undefined
+            ? `https://api.cloudflare.com/client/v4/accounts/${accountId}/browser-rendering`
+            : yield* options.baseUrl;
 
-      return BrowserRunConfig.of({ accountId, apiKey, baseUrl });
-    }),
-  );
+        return BrowserRunConfig.of({ accountId, apiKey, baseUrl });
+      }),
+    );
+
+  /** Creates a config layer from direct values. */
+  static readonly layer = (options: BrowserRunHttpServiceOptions) =>
+    Layer.succeed(
+      BrowserRunConfig,
+      BrowserRunConfig.of({
+        accountId: options.accountId,
+        apiKey: options.apiKey,
+        baseUrl:
+          options.baseUrl ??
+          `https://api.cloudflare.com/client/v4/accounts/${options.accountId}/browser-rendering`,
+      }),
+    );
 }
 
 const make = Effect.gen(function* () {
@@ -1431,11 +1465,16 @@ export class BrowserRunHttpService extends Context.Service<
   BrowserRunHttpService,
   BrowserRunHttpServiceApi
 >()("@siebix/cloudflare-browser-run-effect/BrowserRunHttpService") {
-  /** Service layer that expects `BrowserRunConfig` and `HttpClient.HttpClient` to be provided. */
-  static readonly layerNoDeps = Layer.effect(BrowserRunHttpService, make);
-  /** Default service layer backed by the Fetch HTTP client and environment config. */
-  static readonly layer = this.layerNoDeps.pipe(
-    Layer.provide(FetchHttpClient.layer),
-    Layer.provide(BrowserRunConfig.layer),
-  );
+  /** Service layer backed by direct config values. Expects `HttpClient.HttpClient` to be provided. */
+  static readonly layer = (options: BrowserRunHttpServiceOptions) =>
+    Layer.effect(BrowserRunHttpService, make).pipe(
+      Layer.provide(BrowserRunConfig.layer(options)),
+    );
+  /** Service layer backed by configurable Effect Config values. Expects `HttpClient.HttpClient` to be provided. */
+  static readonly layerConfig = (
+    options?: BrowserRunHttpServiceLayerConfigOptions,
+  ) =>
+    Layer.effect(BrowserRunHttpService, make).pipe(
+      Layer.provide(BrowserRunConfig.layerConfig(options)),
+    );
 }

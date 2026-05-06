@@ -4,6 +4,22 @@ All notable changes to this package will be documented in this file.
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## 0.2.0 - 2026-05-06
+
+Breaking beta release for Browser Run layer configuration.
+
+- Replaced the default `BrowserRunHttpService.layer` value with
+  `BrowserRunHttpService.layer(options)` for direct credentials.
+- Added `BrowserRunHttpService.layerConfig(options?)` for Effect Config-backed
+  credentials, including the default Cloudflare environment variables.
+- Aligned HTTP client composition with Effect AI client packages: Browser Run
+  layers now require callers to provide `HttpClient.HttpClient`, such as
+  `FetchHttpClient.layer`.
+- Removed the public `BrowserRunConfig` and `layerNoDeps` surface so consumers
+  configure the package through `BrowserRunHttpService`.
+- Documented direct-value, custom config, default env, and HTTP transport layer
+  usage.
+
 ## 0.1.1 - 2026-05-06
 
 Patch release for package metadata and documentation.

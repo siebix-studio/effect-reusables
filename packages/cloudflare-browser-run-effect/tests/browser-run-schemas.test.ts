@@ -1,10 +1,20 @@
-import { Result, Schema } from "effect";
+import {
+  Config,
+  ConfigProvider,
+  Effect,
+  Layer,
+  Redacted,
+  Result,
+  Schema,
+} from "effect";
+import { FetchHttpClient } from "effect/unstable/http";
 import { describe, expect, it } from "vitest";
 import {
   BrowserRunApiError,
   BrowserRunCrawlJobId,
   BrowserRunCrawlJobResult,
   BrowserRunCrawlRequest,
+  BrowserRunHttpService,
   BrowserRunSchemaError,
 } from "../src/index.ts";
 
@@ -74,5 +84,51 @@ describe("Browser Run errors", () => {
     const error = BrowserRunSchemaError.make({ cause });
 
     expect(error.message).toBe("{}");
+  });
+});
+
+describe("BrowserRunHttpService layers", () => {
+  it("creates the service from direct layer options", async () => {
+    const client = await Effect.runPromise(
+      Effect.gen(function* () {
+        return yield* BrowserRunHttpService;
+      }).pipe(
+        Effect.provide(
+          BrowserRunHttpService.layer({
+            accountId: "account-1",
+            apiKey: Redacted.make("api-key-1"),
+          }).pipe(Layer.provide(FetchHttpClient.layer)),
+        ),
+      ),
+    );
+
+    expect(typeof client.getMarkdown).toBe("function");
+  });
+
+  it("creates the service from custom Effect Config values", async () => {
+    const testLayer = BrowserRunHttpService.layerConfig({
+      accountId: Config.string("MY_CF_ACCOUNT_ID"),
+      apiKey: Config.redacted("MY_BROWSER_RUN_TOKEN"),
+      baseUrl: Config.string("MY_BROWSER_RUN_BASE_URL"),
+    }).pipe(
+      Layer.provide(FetchHttpClient.layer),
+      Layer.provide(
+        ConfigProvider.layer(
+          ConfigProvider.fromUnknown({
+            MY_CF_ACCOUNT_ID: "account-2",
+            MY_BROWSER_RUN_TOKEN: "api-key-2",
+            MY_BROWSER_RUN_BASE_URL: "https://example.com/browser-rendering",
+          }),
+        ),
+      ),
+    );
+
+    const client = await Effect.runPromise(
+      Effect.gen(function* () {
+        return yield* BrowserRunHttpService;
+      }).pipe(Effect.provide(testLayer)),
+    );
+
+    expect(typeof client.getMarkdown).toBe("function");
   });
 });
