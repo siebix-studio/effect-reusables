@@ -1,6 +1,6 @@
 {
   "name": "@siebix/cloudflare-browser-run-effect",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Effect service and schemas for Cloudflare Browser Run Quick Actions.",
   "keywords": [
     "cloudflare",

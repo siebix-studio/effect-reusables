@@ -4,6 +4,15 @@ All notable changes to this package will be documented in this file.
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## 0.1.1 - 2026-05-06
+
+Patch release for package metadata and documentation.
+
+- Documented the beta status of the package, Effect v4 dependency, and unstable
+  Effect module usage.
+- Removed `src` from the published npm files so consumers receive the built
+  package surface only.
+
 ## 0.1.0 - 2026-05-06
 
 Initial public beta release.
