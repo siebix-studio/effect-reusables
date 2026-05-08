@@ -10,6 +10,15 @@ around [Effect](https://effect.website/).
 | Package | Description |
 | --- | --- |
 | [`@siebix/cloudflare-browser-run-effect`](./packages/cloudflare-browser-run-effect) | Effect service and schemas for Cloudflare Browser Run Quick Actions. |
+| [`@siebix/resend-effect`](./packages/resend-effect) | Effect service and schemas for Resend emails and contacts. |
+
+### Global notes
+
+- `@siebix/resend-effect` accepts both documented raw and structured custom contact
+  property response shapes on `contacts.get` (`{ "company_name": "Acme Corp" }`
+  and `{ type: "string", value: "Acme Corp" }`).
+- `contacts.create` / `contacts.update` still expect payload-style custom properties
+  (`Record<string, string | number | null>`).
 
 ## Development
 
